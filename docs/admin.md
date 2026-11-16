@@ -2,6 +2,8 @@
 
 Open **Extra Fees** in the Commerce Admin menu. The page is built with the Admin UI SDK and React Spectrum, and it's protected by an ACL resource: grant it to the admin roles that should manage fees.
 
+![The Fees list](images/admin-fees.png)
+
 ## Fees
 
 The list of fee rules, with each one's type, calculation and whether it's on. The bundled examples appear as templates, and **every one of them is switched off**: start from one, or from a blank fee.
@@ -20,9 +22,15 @@ Saving checks the rule first: a missing label, a duplicate code or a negative am
 
 Every field is described in [rules.md](rules.md).
 
+![Editing a fee on the Calculation tab](images/admin-editor.png)
+
 ## Test a cart
 
-Enter some lines (SKU, quantity, price), the subtotal, shipping and discount, an address, a shipping method, a customer group and a store view, and see which fees would be charged, for how much, and why the others were skipped. It runs the same engine as checkout, against the saved rules, so it's the quickest way to check a fee before you switch it on.
+Enter some lines (SKU, quantity, price), the subtotal, shipping and discount, an address, a shipping method, a customer group and a store view, and see which fees would be charged and for how much. Fee rules that are invalid are listed too. It runs the same engine as checkout, against the saved rules, so it's the quickest way to check a fee before you switch it on.
+
+Under the results, **Fees the buyer can choose** lists the optional and required fees with their prices for this cart. Choose one to see the charge change, as it would at checkout.
+
+![Test a cart with Express delivery chosen](images/admin-preview.png)
 
 ## Reports
 
@@ -32,6 +40,8 @@ Fee revenue for the last 7 or 30 days, this or last month, or this year, grouped
 - Days and months are in UTC.
 - Fees are counted when the order is placed. Refunds and cancellations aren't subtracted.
 - Labels are exported safely: a label starting with `=`, `+`, `-` or `@` can't run as a spreadsheet formula.
+
+![Fee revenue for the last 30 days, by fee](images/admin-reports.png)
 
 ## Refresh product data
 

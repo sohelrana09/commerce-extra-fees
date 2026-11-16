@@ -72,7 +72,9 @@ export function RulesList({
     <main
       className={style({ display: "flex", flexDirection: "column", gap: 16 })}>
       <div className={style({ alignItems: "center", display: "flex", gap: 8 })}>
-        <Heading level={1} styles={style({ flexGrow: 1 })}>
+        <Heading
+          level={1}
+          styles={style({ flexGrow: 1, font: "heading-lg", margin: 0 })}>
           Fees
         </Heading>
         <ActionButton

@@ -6,6 +6,7 @@ import { Heading } from "@react-spectrum/s2/Heading";
 import { InlineAlert } from "@react-spectrum/s2/InlineAlert";
 import Delete from "@react-spectrum/s2/icons/Delete";
 import { NumberField } from "@react-spectrum/s2/NumberField";
+import { Radio, RadioGroup } from "@react-spectrum/s2/RadioGroup";
 import { style } from "@react-spectrum/s2/style" with { type: "macro" };
 import {
   Cell,
@@ -45,7 +46,7 @@ export function CartPreview() {
     storeId: 1,
   });
   const [selections, setSelections] = useState<
-    Record<string, string[] | boolean>
+    Record<string, string | string[] | boolean>
   >({});
   const [result, setResult] = useState<PreviewResult | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -87,15 +88,59 @@ export function CartPreview() {
         ? [...list, optionCode]
         : list.filter((code) => code !== optionCode);
     }
-    const updated = { ...selections, [feeCode]: next };
+    choose(feeCode, next);
+  };
+
+  const choose = (feeCode: string, value: string | string[] | boolean) => {
+    const updated = { ...selections, [feeCode]: value };
     setSelections(updated);
     run(updated);
+  };
+
+  // A fee without options is one checkbox; radio and dropdown fees take one option code, as the
+  // storefront sends them; checkbox fees with options take a list.
+  const renderChoice = (fee: PreviewResult["options"][number]) => {
+    if (fee.options.length === 0) {
+      return (
+        <Checkbox
+          isSelected={selections[fee.code] === true}
+          key={fee.code}
+          onChange={(on) => toggleOption(fee.code, null, on)}>
+          {`${fee.label} (${money(fee.amount)})`}
+        </Checkbox>
+      );
+    }
+    if (fee.input === "radio" || fee.input === "dropdown") {
+      return (
+        <RadioGroup
+          key={fee.code}
+          label={fee.label}
+          onChange={(code) => choose(fee.code, code)}
+          value={fee.options.find((option) => option.selected)?.code ?? null}>
+          {fee.options.map((option) => (
+            <Radio key={option.code} value={option.code}>
+              {`${option.label} (${money(option.amount)})`}
+            </Radio>
+          ))}
+        </RadioGroup>
+      );
+    }
+    return fee.options.map((option) => (
+      <Checkbox
+        isSelected={option.selected}
+        key={`${fee.code}-${option.code}`}
+        onChange={(on) => toggleOption(fee.code, option.code, on)}>
+        {`${fee.label}: ${option.label} (${money(option.amount)})`}
+      </Checkbox>
+    ));
   };
 
   return (
     <main
       className={style({ display: "flex", flexDirection: "column", gap: 16 })}>
-      <Heading level={1}>Test a cart</Heading>
+      <Heading level={1} styles={style({ font: "heading-lg", margin: 0 })}>
+        Test a cart
+      </Heading>
       <Text>
         See which fees a cart would get with the saved fees. Nothing is charged
         and no cart is created.
@@ -248,7 +293,7 @@ export function CartPreview() {
                 <Row id={fee.code}>
                   <Cell>{fee.label}</Cell>
                   <Cell>{fee.code}</Cell>
-                  <Cell>{money(fee.base_fee)}</Cell>
+                  <Cell align="end">{money(fee.base_fee)}</Cell>
                 </Row>
               )}
             </TableBody>
@@ -263,27 +308,7 @@ export function CartPreview() {
                 gap: 8,
               })}>
               <Heading level={3}>Fees the buyer can choose</Heading>
-              {result.options.map((fee) =>
-                fee.options.length === 0 ? (
-                  <Checkbox
-                    isSelected={selections[fee.code] === true}
-                    key={fee.code}
-                    onChange={(on) => toggleOption(fee.code, null, on)}>
-                    {`${fee.label} (${money(fee.amount)})`}
-                  </Checkbox>
-                ) : (
-                  fee.options.map((option) => (
-                    <Checkbox
-                      isSelected={option.selected}
-                      key={`${fee.code}-${option.code}`}
-                      onChange={(on) =>
-                        toggleOption(fee.code, option.code, on)
-                      }>
-                      {`${fee.label}: ${option.label} (${money(option.amount)})`}
-                    </Checkbox>
-                  ))
-                ),
-              )}
+              {result.options.map(renderChoice)}
             </div>
           )}
         </div>
