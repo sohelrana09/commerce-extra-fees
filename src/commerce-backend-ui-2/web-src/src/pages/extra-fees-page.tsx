@@ -108,7 +108,7 @@ export function ExtraFeesPage() {
   };
 
   return (
-    <div className={style({ display: "flex", height: "screen" })}>
+    <div className={style({ display: "flex", font: "body", height: "screen" })}>
       <nav
         className={style({
           display: "flex",
@@ -117,7 +117,9 @@ export function ExtraFeesPage() {
           width: 240,
         })}>
         <div className={style({ padding: 16 })}>
-          <Heading level={3}>Extra Fees</Heading>
+          <Heading level={3} styles={style({ font: "title-lg", margin: 0 })}>
+            Extra Fees
+          </Heading>
         </div>
         <Divider size="S" />
         <div

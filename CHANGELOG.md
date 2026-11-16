@@ -5,6 +5,9 @@ All notable changes to Extra Fees. Versions follow [Semantic Versioning](https:/
 ## Unreleased
 
 - MIT license, contributor guides, issue and pull request templates, and guides in `docs/`.
+- **Admin page:** the page now uses the Spectrum font everywhere (titles and sidebar fell back to the browser's serif font). Test a cart offers radio and dropdown fees as a radio group, so it sends one option the way the storefront does, and right-aligns amounts.
+- Screenshots of the Admin page in the README and `docs/admin.md`.
+- Restored TypeScript 6, required by `@adobe/aio-commerce-lib-app`; Dependabot skips TypeScript and Babel majors.
 - A CI workflow runs Biome, the type check and the tests on every push and pull request, without App Builder secrets. Stage deploys now run on demand from the Actions tab.
 
 ## v0.4.0 (2026-11-16)

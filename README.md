@@ -12,7 +12,7 @@
 
 Built by [Sohel Rana](https://sohelrana.io), Adobe Certified Master Architect and Claude Certified Architect – Foundations (CCAR-F).
 
-[Quick start](#quick-start) · [Documentation](#documentation) · [Rule format](docs/rules.md) · [Storefront kit](storefront/README.md) · [Contributing](CONTRIBUTING.md)
+[Quick start](#quick-start) · [Screenshots](#screenshots) · [Documentation](#documentation) · [Rule format](docs/rules.md) · [Storefront kit](storefront/README.md) · [Contributing](CONTRIBUTING.md)
 
 Extra Fees adds the fees merchants used to buy PHP modules for: small-order fees, handling charges, surcharges by region or shipping method, fees for some products, and optional paid services such as gift wrap, insurance or express delivery.
 
@@ -30,12 +30,15 @@ It runs **out of process**, so it works on **Adobe Commerce as a Cloud Service (
 
 > **Status: v0.4.0, feature complete.** The rule engine, Admin page, storefront action, reports and database are tested and run on Adobe I/O Runtime. The webhook and event registration, and the storefront kit, still need a check on a live Commerce instance before the Adobe Commerce Marketplace submission. See [Roadmap](#roadmap).
 
+![The Extra Fees page in the Commerce Admin: the list of fees](docs/images/admin-fees.png)
+
 ---
 
 ## Contents
 
 - [Who it is for](#who-it-is-for)
 - [Features](#features)
+- [Screenshots](#screenshots)
 - [How it works](#how-it-works)
 - [Quick start](#quick-start)
 - [Configuration](#configuration)
@@ -75,6 +78,20 @@ It runs **out of process**, so it works on **Adobe Commerce as a Cloud Service (
 | Fee revenue reports by fee, day or month, with CSV export | ✅ |
 | Rules kept in code (version control) instead of the Admin | ✅ (`FEE_RULES`) |
 | Tax on fees | ❌ The custom fees API has no tax field, so fees are untaxed |
+
+## Screenshots
+
+The Admin page, with sample fees and orders.
+
+| Fee editor | Options a buyer can choose |
+|---|---|
+| ![Editing the Remote area delivery fee: larger of $10 or 2%, at most $60](docs/images/admin-editor.png) | ![Shipping insurance with Basic and Full value options](docs/images/admin-options.png) |
+
+| Test a cart | Fee revenue report |
+|---|---|
+| ![Test a cart: a $100 cart to Alaska with Express delivery gets $36 in fees](docs/images/admin-preview.png) | ![Fee revenue for the last 30 days, by fee](docs/images/admin-reports.png) |
+
+These were taken from a local build of the Admin page with sample data, outside the Commerce Admin; the Test a cart results come from the real rule engine.
 
 ## How it works
 
