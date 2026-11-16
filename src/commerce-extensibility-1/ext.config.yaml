@@ -23,8 +23,6 @@ runtimeManifest:
           function: .generated/actions/app-management/app-config.js
           web: yes
           runtime: nodejs:24
-          inputs:
-            LOG_LEVEL: $LOG_LEVEL
           annotations:
             final: true
             require-adobe-auth: true
@@ -32,28 +30,22 @@ runtimeManifest:
           function: .generated/actions/app-management/association.js
           web: yes
           runtime: nodejs:24
-          inputs:
-            LOG_LEVEL: $LOG_LEVEL
           annotations:
             final: true
             require-adobe-auth: true
+            include-ims-credentials: true
         installation:
           function: .generated/actions/app-management/installation.js
           web: yes
           runtime: nodejs:24
-          inputs:
-            LOG_LEVEL: $LOG_LEVEL
-            AIO_COMMERCE_AUTH_IMS_CLIENT_ID: $AIO_COMMERCE_AUTH_IMS_CLIENT_ID
-            AIO_COMMERCE_AUTH_IMS_CLIENT_SECRETS: $AIO_COMMERCE_AUTH_IMS_CLIENT_SECRETS
-            AIO_COMMERCE_AUTH_IMS_TECHNICAL_ACCOUNT_ID: $AIO_COMMERCE_AUTH_IMS_TECHNICAL_ACCOUNT_ID
-            AIO_COMMERCE_AUTH_IMS_TECHNICAL_ACCOUNT_EMAIL: $AIO_COMMERCE_AUTH_IMS_TECHNICAL_ACCOUNT_EMAIL
-            AIO_COMMERCE_AUTH_IMS_ORG_ID: $AIO_COMMERCE_AUTH_IMS_ORG_ID
-            AIO_COMMERCE_AUTH_IMS_SCOPES: $AIO_COMMERCE_AUTH_IMS_SCOPES
           annotations:
             final: true
             require-adobe-auth: true
+            include-ims-credentials: true
           limits:
             timeout: 600000
+      inputs:
+        LOG_LEVEL: $LOG_LEVEL
     extra-fees:
       license: Apache-2.0
       actions:
