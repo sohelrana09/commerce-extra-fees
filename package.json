@@ -51,7 +51,7 @@
   },
   "devDependencies": {
     "@babel/core": "^7.29.13",
-    "@babel/preset-react": "^7.29.7",
+    "@babel/preset-react": "^8.0.1",
     "@biomejs/biome": "^2.6.7",
     "@tsconfig/bases": "^1.0.30",
     "@types/react": "^19.3.0",
