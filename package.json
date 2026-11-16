@@ -3,7 +3,24 @@
   "version": "0.4.0",
   "private": true,
   "description": "Extra Fees for Adobe Commerce: rule-based cart and checkout fees, built on App Builder and the out-of-process totals collector.",
-  "license": "UNLICENSED",
+  "keywords": [
+    "adobe-commerce",
+    "app-builder",
+    "magento",
+    "checkout",
+    "extra-fees",
+    "surcharge",
+    "edge-delivery-services"
+  ],
+  "homepage": "https://github.com/sohelrana09/commerce-extra-fees#readme",
+  "bugs": {
+    "url": "https://github.com/sohelrana09/commerce-extra-fees/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sohelrana09/commerce-extra-fees.git"
+  },
+  "license": "MIT",
   "author": "Sohel Rana",
   "type": "module",
   "imports": {

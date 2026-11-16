@@ -1,8 +1,57 @@
 # Extra Fees for Adobe Commerce
 
-Extra Fees adds rule-based fees to the cart and checkout in Adobe Commerce: small-order fees, handling and surcharges, fees for some products, and optional services such as shipping insurance. It's an App Builder app. Commerce calls it during cart totals collection through the out-of-process totals collector's **custom fees** webhook. Commerce then shows each fee on its own line in the cart, checkout, order, invoice, credit memo and emails.
+[![CI](https://github.com/sohelrana09/commerce-extra-fees/actions/workflows/ci.yml/badge.svg)](https://github.com/sohelrana09/commerce-extra-fees/actions/workflows/ci.yml)
+[![Adobe App Builder](https://img.shields.io/badge/Adobe-App%20Builder-eb1000)](https://developer.adobe.com/app-builder/)
+[![Adobe Commerce](https://img.shields.io/badge/Adobe%20Commerce-SaaS%20%26%20PaaS-eb1000)](https://business.adobe.com/products/commerce.html)
+[![Node.js 24](https://img.shields.io/badge/Node.js-24-5fa04e)](https://nodejs.org/)
+[![Edge Delivery Services](https://img.shields.io/badge/Edge%20Delivery-storefront%20kit-1473e6)](storefront/README.md)
+[![GitHub stars](https://img.shields.io/github/stars/sohelrana09/commerce-extra-fees?style=social)](https://github.com/sohelrana09/commerce-extra-fees)
+[![License](https://img.shields.io/github/license/sohelrana09/commerce-extra-fees)](LICENSE)
 
-> **Status: phase 4 (feature complete, not yet verified on a live Commerce instance).** Merchants manage fees and read fee revenue reports on an Admin page. Buyers choose optional and required fees on an Edge Delivery Services storefront, and fee lines show in the cart and checkout summaries. See [Roadmap](#roadmap).
+**Rule-based cart and checkout fees for Adobe Commerce, built as an App Builder app.**
+
+Built by [Sohel Rana](https://sohelrana.io), Adobe Certified Master Architect and Claude Certified Architect – Foundations (CCAR-F).
+
+[Quick start](#quick-start) · [Documentation](#documentation) · [Rule format](docs/rules.md) · [Storefront kit](storefront/README.md) · [Contributing](CONTRIBUTING.md)
+
+Extra Fees adds the fees merchants used to buy PHP modules for: small-order fees, handling charges, surcharges by region or shipping method, fees for some products, and optional paid services such as gift wrap, insurance or express delivery.
+
+It runs **out of process**, so it works on **Adobe Commerce as a Cloud Service (SaaS)**, where PHP modules can't be installed, as well as on Adobe Commerce on cloud infrastructure and on-premises (PaaS). Commerce calls the app while it collects cart totals, and shows each fee on its own line in the cart, checkout, order, invoice, credit memo and emails.
+
+**Key features**
+
+- **Any number of fees:** fixed, percent, fixed + percent, or the larger of the two; per order, item or unit; with minimum and maximum caps.
+- **Precise targeting:** subtotal ranges, store views, customer groups, address, shipping method, quantity, weight, and product SKU, category or attribute.
+- **Buyer choices:** optional and required fees as checkboxes, radio buttons or a dropdown, with a priced option each.
+- **Admin page:** create, edit and test fees inside the Commerce Admin, with no code.
+- **Reports:** fee revenue by fee, day or month, with CSV export.
+- **Never blocks checkout:** if anything fails, the app charges no fee and logs the error.
+- **Storefront kit:** a block and helpers for Edge Delivery Services storefronts with the Commerce drop-ins.
+
+> **Status: v0.4.0, feature complete.** The rule engine, Admin page, storefront action, reports and database are tested and run on Adobe I/O Runtime. The webhook and event registration, and the storefront kit, still need a check on a live Commerce instance before the Adobe Commerce Marketplace submission. See [Roadmap](#roadmap).
+
+---
+
+## Contents
+
+- [Who it is for](#who-it-is-for)
+- [Features](#features)
+- [How it works](#how-it-works)
+- [Quick start](#quick-start)
+- [Configuration](#configuration)
+- [Documentation](#documentation)
+- [Commands](#commands)
+- [Project structure](#project-structure)
+- [Roadmap](#roadmap)
+- [FAQ](#faq)
+- [Contributing](#contributing)
+- [License](#license)
+
+## Who it is for
+
+- **Merchants** moving to Adobe Commerce as a Cloud Service who relied on a Magento fee module (small-order fees, surcharges, paid extras) and need the same on SaaS.
+- **Agencies and developers** who want a working reference for the out-of-process totals collector, Admin UI SDK pages, App Management, Commerce eventing and App Builder Database Storage in one app.
+- **Storefront teams** on Edge Delivery Services who need fee lines and fee choices in the cart and checkout drop-ins.
 
 ## Features
 
@@ -20,173 +69,197 @@ Extra Fees adds rule-based fees to the cart and checkout in Adobe Commerce: smal
 | Product filters: category and product attribute | ✅ (looked up through Commerce REST and cached) |
 | Automatic, required and optional fees (checkbox, dropdown, radio, with priced options) | ✅ |
 | Storefront kit for Edge Delivery Services: fee choices and fee lines in the cart and checkout | ✅ ([storefront/](storefront/README.md)) |
+| Fees for headless storefronts, in GraphQL `cart.prices.custom_fees` | ✅ (Commerce) |
 | Fee on order, invoice, credit memo and emails | ✅ (Commerce) |
 | Admin page to create, edit, delete and test fees | ✅ |
 | Fee revenue reports by fee, day or month, with CSV export | ✅ |
-| Tax on fees | ❌ The custom fees API has no tax field. Fees are untaxed |
+| Rules kept in code (version control) instead of the Admin | ✅ (`FEE_RULES`) |
+| Tax on fees | ❌ The custom fees API has no tax field, so fees are untaxed |
 
-**Failure policy:** the webhook never blocks a cart. If anything goes wrong, such as an invalid rule or bad configuration, it charges no fee and logs the error.
+## How it works
 
-## Requirements
-
-- Adobe Commerce as a Cloud Service, or Adobe Commerce 2.4.5+ on cloud infrastructure or on-premises with `magento/module-out-of-process-totals-collector` and the Commerce webhooks module.
-- An App Builder project and workspace.
-- Node.js 24 and the Adobe I/O CLI (`aio`).
-
-## Install
-
-```bash
-npm install
-aio login
-aio console org select
-aio console project select
-aio console workspace select
-aio app use --merge
-cp env.dist .env
-aio app deploy
+```
+Commerce totals collection ──custom fees webhook──▶ calculate-fees ─┐
+Storefront (EDS or headless) ──▶ fee-options (public) ──────────────┤
+Commerce Admin page (Admin UI SDK) ──▶ rules-*, fee-report ─────────┼──▶ rule engine ──▶ App Builder Database
+Order placed (Commerce event) ──▶ record-order-fees ────────────────┤      (rules, choices, product cache,
+Daily alarm ──▶ cleanup ────────────────────────────────────────────┘       order fees for reports)
 ```
 
-Then associate the app with your Commerce instance in **Apps → App Management**. The custom fees webhook is declared in `app.commerce.config.ts` for both SaaS and PaaS and runs with Adobe IMS authentication (`require-adobe-auth: true`).
+Key design choices:
 
-| | Webhook method |
-|---|---|
-| PaaS | `plugin.magento.out_of_process_totals_collector.api.get_total_modifications.custom_fees` |
-| SaaS | `plugin.out_of_process_totals_collector.api.get_total_modifications.custom_fees` (check with `GET /V1/webhooks/supportedList`) |
+- **One rule engine.** The webhook, the storefront action and the Admin's "Test a cart" all use the same engine (`src/common/fees`), so the price a buyer sees is the price Commerce charges.
+- **Fail open.** The webhook answers within Commerce's timeout and never returns an error: a broken rule or a slow lookup means no fee, not a blocked checkout.
+- **No custom quote data.** Commerce as a Cloud Service can't store extra data on the cart, so the buyer's choices are saved in App Builder Database Storage, keyed by the cart, and read by the webhook.
+- **Least privilege.** Admin actions require the signed-in admin's Adobe IMS token. The only public action is `fee-options`, where the masked cart ID is the credential, as it is for Commerce's own guest cart APIs.
+- **Installed by App Management.** Webhook, event subscription, Admin menu, settings and database indexes are declared in `app.commerce.config.ts` and set up when a merchant installs the app.
 
-On installation, App Management runs `scripts/setup-database.js`. It waits until the workspace's App Builder database is provisioned, then creates the indexes for the app's collections. **Uninstalling the app drops every collection, including the recorded orders behind the reports.**
+More detail: [docs/architecture.md](docs/architecture.md).
 
-| Collection | Holds | Kept for |
-|---|---|---|
-| `fee_rules` | Fee rules from the Admin page | Until deleted |
-| `fee_catalog` | Product categories and attributes | The cache time in settings |
-| `fee_selections` | Buyers' choices for optional and required fees, per cart | 30 days, or until the order is placed |
-| `fee_orders` | Fees charged on each placed order, for reports | Until the app is uninstalled |
+## Quick start
 
-App Management also subscribes the app to the order-placed Commerce event:
+**You need:** Node.js 24 (`.nvmrc` pins it), the [Adobe I/O CLI](https://developer.adobe.com/app-builder/docs/guides/runtime_guides/tools/cli-install) (`npm install -g @adobe/aio-cli`), an App Builder project, and an Adobe Commerce instance in the same Adobe organization.
 
-| | Event |
-|---|---|
-| PaaS | `plugin.magento.sales.api.order_management.place` |
-| SaaS | `plugin.sales.api.order_management.place` |
+1. **Clone and install**
 
-The event sends only the order's IDs (`entity_id`, `increment_id`, `quote_id`, `created_at`). The `record-order-fees` action reads the full order from Commerce REST, saves its fees in `fee_orders`, and deletes the buyer's saved choices for that cart. Saving is idempotent per order, so a redelivered event does no harm, and a failure makes Adobe I/O Events retry. The order's fees come from the order itself when Commerce exposes them in `extension_attributes`. Otherwise they're worked out again from the order with the current rules and the buyer's saved choices, which matches the charge unless a rule changed in the moments before the order was placed.
+   ```bash
+   git clone https://github.com/sohelrana09/commerce-extra-fees.git
+   cd commerce-extra-fees
+   npm install
+   ```
 
-A daily `cleanup` action (the `extra-fees-daily` alarm trigger, 03:17 UTC) deletes expired buyer choices and product data.
+2. **Link your App Builder workspace**
 
-### App Management settings
+   ```bash
+   aio login
+   aio console org select
+   aio console project select
+   aio console workspace select
+   aio app use --merge
+   cp env.dist .env
+   ```
+
+   The workspace needs the I/O Management API, the Adobe Commerce eventing API and App Builder Data Services, and an OAuth Server-to-Server credential ([docs/installation.md](docs/installation.md#app-builder-project)). The installation step provisions its database; `aio app db provision` does it ahead of time.
+
+3. **Deploy**
+
+   ```bash
+   aio app deploy
+   ```
+
+4. **Install in Commerce**
+
+   In the Commerce Admin, open **Apps → App Management**, find **Extra Fees** and install it. App Management registers the webhook and the order event, adds the **Extra Fees** menu, and creates the database indexes.
+
+5. **Create a fee**
+
+   Open **Extra Fees** in the Admin menu, start from one of the example templates (every one is switched off), and try it in **Test a cart** before you switch it on.
+
+Full guide, including the storefront: [docs/installation.md](docs/installation.md).
+
+## Configuration
+
+Merchants change these in **App Management** after installing:
 
 | Setting | Default | Meaning |
 |---|---|---|
 | Charge extra fees | On | The master switch. When it's off, the webhook charges no fees. |
 | Product data cache (minutes) | 60 | How long product categories and attributes are cached. |
 
-## Managing fees in the Admin
+Developers can set these action inputs in `.env` before deploying:
 
-Open **Extra Fees** in the Commerce Admin menu. It's protected by an ACL resource, so grant it to the admin roles that should manage fees. The page has these sections:
-
-- **Fees:** the list of rules. The editor has General, Stores & groups, Conditions, Calculation and Options tabs. The bundled examples appear as templates, and **every one of them is switched off**.
-- **Test a cart:** enter a subtotal, address, customer group and lines, and see which fees would be charged and why the others were skipped.
-- **Reports:** fee revenue for the last 7 or 30 days, this or last month, or this year, grouped by fee, by fee and day, or by fee and month, with a CSV download. Amounts are in each store's base currency and never mixed across currencies. Days and months are in UTC. Refunds aren't subtracted.
-- **Refresh product data:** clears the product cache, so category and attribute changes take effect immediately.
-
-A saved change reaches checkout within about 30 seconds, because each warm webhook container caches the rules for that long.
-
-The page calls these web actions in the `ExtraFeesAdmin` package. Every one requires the signed-in admin's IMS token (`require-adobe-auth: true`):
-
-| Action | Purpose |
+| Variable | Purpose |
 |---|---|
-| `rules-list` | Lists the saved rules and the example templates. |
-| `rule-save` | Validates and saves a rule, including renaming its code. |
-| `rule-delete` | Deletes a rule. |
-| `rule-preview` | Runs the rule engine against a test cart. |
-| `lookups` | Lists store views and customer groups from Commerce REST. |
-| `catalog-refresh` | Clears the product data cache. |
-| `fee-report` | Totals recorded fees for a date range (`{ from, to, groupBy }`, dates as `YYYY-MM-DD`, at most 3 years). |
+| `FEE_RULES` | Optional. A JSON array of rules (or `{ "rules": [...] }`) that **overrides** the rules saved in the Admin, for teams that keep rules in version control. Format: [docs/rules.md](docs/rules.md). |
+| `LOG_LEVEL` | Optional. `debug`, `info` (default), `warn` or `error`. At `debug` the webhook logs the fees it applies. |
+| `AIO_COMMERCE_AUTH_IMS_*` | The workspace's OAuth Server-to-Server credential, used to call Commerce REST. Filled in by `aio app use`; the Commerce address comes from App Management when the app is installed. Never commit `.env`. |
 
-## Storefront
+## Documentation
 
-Buyers choose optional and required fees through the public `fee-options` web action (package `extra-fees`). The storefront sends the masked cart ID it already holds. The action looks up the cart with `GET /V1/guest-carts/{maskedId}` and its totals, and prices the choices with the same rule engine as the webhook, so the price a buyer sees is the price Commerce charges.
-
-| Request body | Response |
+| Guide | What's in it |
 |---|---|
-| `{ "cartId": "<masked id>" }` | `{ currency, fees: [{ code, label, description, type, input, amount, selected, options: [{ code, label, amount, selected }] }] }` |
-| `{ "cartId": "<masked id>", "selections": { "insurance": true, "delivery": "express", "packaging": ["box"] } }` | Saves the choices, then answers as above. |
+| [Installation](docs/installation.md) | App Builder project, deploy, App Management, webhook and event names, database collections, uninstalling. |
+| [Managing fees](docs/admin.md) | The Admin page: fees, Test a cart, Reports, product data, and the web actions behind it. |
+| [Rule format](docs/rules.md) | Every rule field, calculation mode, condition and operator, with examples. |
+| [Storefront API](docs/storefront-api.md) | The public `fee-options` action for headless storefronts, and reading fees from GraphQL. |
+| [Storefront kit](storefront/README.md) | Adding fee lines and fee choices to an Edge Delivery Services storefront. |
+| [Architecture](docs/architecture.md) | Actions, data flow, caching, failure handling and security. |
 
-Choices are checked against the rules before they're saved: unknown fees and options are dropped, and a dropdown or radio fee keeps one option. They're stored per quote in the `fee_selections` collection and expire after 30 days. When the storefront refreshes the cart, the webhook reads the saved choices and charges them.
+## Commands
 
-The [storefront kit](storefront/README.md) has a block and helpers for Edge Delivery Services storefronts. Headless storefronts can call the action directly, and read the charged fees from `cart.prices.custom_fees` in GraphQL.
+| Command | What it does |
+|---|---|
+| `npm test` | Unit tests with coverage (Vitest). |
+| `npm run code:check` / `npm run code:fix` | Lint and format with Biome. |
+| `npm run typecheck` | Type-checks the Admin page (TypeScript). |
+| `aio app build` | Builds the actions and the Admin page. |
+| `aio app deploy` | Deploys to the linked workspace. |
+| `aio app db provision` | Creates the workspace's App Builder database ahead of installation (once per workspace). |
+| `aio app get-url` | Prints the action URLs, including the storefront's `fee-options`. |
 
-### Product categories and attributes
+## Project structure
 
-The webhook payload carries only SKUs. When a rule uses `category_ids` or `attr.<code>`, the webhook looks up the cart's products with `GET /V1/products`, 50 SKUs per request, and caches them in the `fee_catalog` collection. If the lookup fails, those conditions don't match, so the fee isn't charged and checkout carries on.
-
-## Rule format
-
-The Admin page writes rules in this format. To manage rules in code instead, for example to keep them in version control, set the `FEE_RULES` action input to a JSON array of rules or to `{ "rules": [...] }`. When `FEE_RULES` is set, it **overrides** the rules saved in the Admin.
-
-```json
-[
-  {
-    "code": "small_order_fee",
-    "label": "Small order fee",
-    "subtotal": { "max": 250 },
-    "calc": { "mode": "fixed", "fixed": 15 }
-  },
-  {
-    "code": "remote_area",
-    "label": "Remote area delivery",
-    "customerGroups": [1, 2],
-    "conditions": { "any": [
-      { "field": "region", "op": "in", "value": "AK,HI" },
-      { "field": "postcode", "op": "starts_with", "value": "996,997" }
-    ] },
-    "calc": { "mode": "max_of", "fixed": 10, "percent": 2, "max": 60 }
-  }
-]
 ```
-
-### Rule reference
-
-| Field | Meaning |
-|---|---|
-| `code` | Unique key, 1–40 chars of `a-z 0-9 _`. Option fees use `code__option`. |
-| `label`, `description` | Shown to the buyer. |
-| `enabled` | `false` switches the rule off. Default `true`. |
-| `sortOrder` | Order of the fee lines. |
-| `type` | `automatic` (default), `required` or `optional`. |
-| `input` | `checkbox` (default, several choices allowed), `dropdown` or `radio` (one choice). |
-| `stores`, `customerGroups` | Store IDs and customer group IDs. Empty means all. |
-| `subtotal` | `{ min, max }`. `min` is inclusive and `max` is exclusive. |
-| `conditions` | Cart condition tree (see below). |
-| `items` | Item condition tree. Only matching lines count for per-item and per-unit fees and percent bases. |
-| `calc` | `{ mode, fixed, percent, applyPer, base: { includeDiscount, includeShipping }, min, max }` |
-| `options` | `[{ code, label, calc, default }]`. An option's `calc` overrides the rule's `calc`. |
-
-**Condition trees** use `{ all: [...] }`, `{ any: [...] }`, `{ not: {...} }` and leaves `{ field, op, value }`.
-
-- Operators: `eq neq gt gte lt lte between in nin contains starts_with`.
-- Cart fields: `subtotal qty item_count weight shipping_method country region postcode city customer_group customer_is_guest store_id`.
-- Item fields: `sku qty price row_total weight category_ids attr.<code>`.
-
-## Development
-
-```bash
-npm test            # Vitest with coverage
-npm run code:check  # Biome
-npm run typecheck   # Admin page TypeScript
-aio app build
+app.commerce.config.ts        App Management: webhook, order event, Admin menu, settings
+src/common/fees/              the rule engine and data access, shared by every action
+    engine.js, conditions.js  rule evaluation and fee calculation
+    cart.js                   turns webhook, order and storefront carts into one shape
+    rules-repo.js, db.js      rules and collections in App Builder Database Storage
+    catalog.js                product category and attribute lookups, cached
+    selections.js             buyers' fee choices per cart
+    orders.js, reports.js     recorded order fees and revenue reports
+src/commerce-extensibility-1/ the extra-fees package: calculate-fees (webhook), fee-options
+                              (storefront), record-order-fees (event), cleanup (daily)
+src/commerce-backend-ui-2/    the Admin page (React Spectrum) and its ExtraFeesAdmin actions
+src/commerce-configuration-1/ App Management settings
+scripts/setup-database.js     creates the database indexes on installation
+storefront/                   the Edge Delivery Services kit (copied into a storefront repo)
+test/                         Vitest: engine, actions, Admin page helpers, storefront kit
+docs/                         guides
 ```
 
 ## Roadmap
 
-1. **Phase 1 (done):** rule engine and the custom fees webhook.
-2. **Phase 2 (done):** an Admin UI SDK page for rules, rules stored in App Builder Database Storage, and a cached catalog lookup for categories and attributes.
-3. **Phase 3 (done):** a storefront action and an Edge Delivery Services kit for optional fees, plus fee lines in the cart and checkout summaries.
-4. **Phase 4 (this release):** an order-placed event that records the fees on each order, fee revenue reports with CSV export, and daily cleanup.
+Done:
+
+1. **Rule engine and webhook:** every calculation mode and condition, with the custom fees webhook.
+2. **Admin page:** rules in App Builder Database Storage, an editor with templates, Test a cart, and cached category and attribute lookups.
+3. **Storefront:** the public `fee-options` action and the Edge Delivery Services kit.
+4. **Orders and reports:** the order-placed event records the fees on each order; revenue reports with CSV export; daily cleanup.
+
+Next:
+
+- Verify on a live Adobe Commerce as a Cloud Service instance: SaaS webhook and event names, the storefront kit end to end, and fees on placed orders.
+- Submit to the Adobe Commerce Marketplace.
+- Fees by payment method, once the webhook payload carries it.
+- Subtract refunds in reports (credit memo events).
+
+Ideas and pull requests are welcome, see [Contributing](#contributing).
 
 ### Known limits
 
 - Fees are untaxed, because the custom fees API has no tax field.
 - Reports count fees when the order is placed. Credit memos and cancellations aren't subtracted.
-- Date and note inputs on fees (as in some Magento fee modules) aren't supported, because they couldn't be printed on Commerce documents.
-- Before the Marketplace submission, these need confirming on a live instance: the SaaS webhook and event names, guest-cart lookup for signed-in customers' carts, whether `custom_fees` is on the order GraphQL type and in order `extension_attributes`, and the `install.yaml` API list for Commerce eventing.
+- Date and note inputs on fees (as in some Magento fee modules) aren't supported, because Commerce documents couldn't print them.
+
+## FAQ
+
+**Is this an official Adobe product?**
+No. Extra Fees is an independent open-source project. Adobe, Adobe Commerce, App Builder and Magento are trademarks of Adobe Inc.
+
+**Does it work on Adobe Commerce as a Cloud Service?**
+Yes, that's what it's built for. It uses only extension points that ACCS supports: the out-of-process totals collector webhook, Commerce eventing, the Admin UI SDK and App Management.
+
+**Does it work on Adobe Commerce PaaS or Magento Open Source?**
+On Adobe Commerce 2.4.5+ (cloud infrastructure or on-premises) with the Commerce webhooks module and `magento/module-out-of-process-totals-collector`, yes. Magento Open Source doesn't have the webhooks module.
+
+**What happens if the app is down or slow?**
+Checkout carries on without the fees. Commerce has a 5-second timeout on the webhook, and the app itself catches every error and answers "no fees".
+
+**Can I keep my rules in Git?**
+Yes. Set `FEE_RULES` to a JSON array of rules and deploy. It overrides the rules saved in the Admin.
+
+**Do I need Edge Delivery Services?**
+No. Any storefront that reads `cart.prices.custom_fees` from GraphQL shows the fees. The storefront kit only adds ready-made pieces for EDS; headless storefronts call the [`fee-options` action](docs/storefront-api.md) for optional fees.
+
+**Is it production-ready?**
+The code is tested (over 160 unit tests, about 97% coverage) and the actions run on Adobe I/O Runtime, but it hasn't run against a live Commerce instance yet. Test it on a staging instance first, and watch the action logs (`aio app logs`) for the first orders.
+
+## Contributing
+
+Bug fixes, new fee conditions, storefront improvements and better documentation are all welcome. For larger changes, open an issue first so we can agree on the approach.
+
+1. Fork the repository and create a branch: `git checkout -b feature/your-change`.
+2. Keep business logic in `src/common/fees` with unit tests, and actions thin.
+3. Run the checks: `npm run code:check`, `npm run typecheck` and `npm test`.
+4. Commit, push the branch and open a pull request that says what changed and how you tested it.
+
+The full guide is in [CONTRIBUTING.md](CONTRIBUTING.md). Please report security problems privately, see [SECURITY.md](SECURITY.md), and follow the [code of conduct](CODE_OF_CONDUCT.md).
+
+## License
+
+[MIT](LICENSE). You may use, change and redistribute Extra Fees, also in commercial projects, as long as the copyright notice stays.
+
+---
+
+Made with Adobe App Builder. If Extra Fees helps you, please give it a star.

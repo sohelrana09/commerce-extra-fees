@@ -1,4 +1,5 @@
-name: AIO App CI
+# Deploys to the Production workspace when a release is published. Needs the *_PROD secrets.
+name: Deploy to Production
 
 on:
   release:

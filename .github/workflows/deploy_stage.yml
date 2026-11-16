@@ -1,9 +1,8 @@
-name: AIO App CI
+# Deploys to the Stage workspace. Run it from the Actions tab once the *_STAGE secrets are set.
+name: Deploy to Stage
 
 on:
-  push:
-    branches:
-      - main
+  workflow_dispatch:
 jobs:
   deploy:
     name: Deploy to Stage
