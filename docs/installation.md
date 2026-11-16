@@ -40,7 +40,7 @@ aio app deploy
 
 `aio app use --merge` writes the workspace's credentials into `.env` and `.aio`. Both are git-ignored: never commit them.
 
-To deploy from GitHub instead, set the workspace secrets the template workflows expect (`CLIENTID_STAGE`, `CLIENTSECRET_STAGE`, `TECHNICALACCID_STAGE`, `TECHNICALACCEMAIL_STAGE`, `IMSORGID_STAGE`, `SCOPES_STAGE`, `AIO_RUNTIME_NAMESPACE_STAGE`, `AIO_RUNTIME_AUTH_STAGE`, and the same with `_PROD`). Then run **Deploy to Stage** from the Actions tab, and publish a GitHub release to deploy to Production.
+To deploy from GitHub instead, set the workspace secrets the template workflows expect (`CLIENTID_STAGE`, `CLIENTSECRET_STAGE`, `TECHNICALACCID_STAGE`, `TECHNICALACCEMAIL_STAGE`, `IMSORGID_STAGE`, `SCOPES_STAGE`, `AIO_RUNTIME_NAMESPACE_STAGE`, `AIO_RUNTIME_AUTH_STAGE`, and the same with `_PROD`). Then run **Deploy to Stage** or **Deploy to Production** from the Actions tab; for Production, pick the release tag under "Use workflow from".
 
 ## Install in Commerce
 
