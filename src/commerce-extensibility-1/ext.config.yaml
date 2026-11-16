@@ -1,0 +1,138 @@
+# The [pre-app-build] hooks are auto-generated. Do not remove or manually edit.
+hooks:
+  pre-app-build: EXTENSION=extensibility/1 npx aio-commerce-lib-app hooks pre-app-build
+  post-app-deploy: EXTENSION=extensibility/1 npx aio-commerce-lib-app hooks post-app-deploy
+
+operations:
+  # These worker processes definitions are auto-generated. Do not remove or manually edit.
+  workerProcess:
+    - type: action
+      impl: app-management/app-config
+    - type: action
+      impl: app-management/association
+    - type: action
+      impl: app-management/installation
+
+runtimeManifest:
+  packages:
+    # This package definition is auto-generated. Do not remove or manually edit.
+    app-management:
+      license: Apache-2.0
+      actions:
+        app-config:
+          function: .generated/actions/app-management/app-config.js
+          web: yes
+          runtime: nodejs:24
+          inputs:
+            LOG_LEVEL: $LOG_LEVEL
+          annotations:
+            final: true
+            require-adobe-auth: true
+        association:
+          function: .generated/actions/app-management/association.js
+          web: yes
+          runtime: nodejs:24
+          inputs:
+            LOG_LEVEL: $LOG_LEVEL
+          annotations:
+            final: true
+            require-adobe-auth: true
+        installation:
+          function: .generated/actions/app-management/installation.js
+          web: yes
+          runtime: nodejs:24
+          inputs:
+            LOG_LEVEL: $LOG_LEVEL
+            AIO_COMMERCE_AUTH_IMS_CLIENT_ID: $AIO_COMMERCE_AUTH_IMS_CLIENT_ID
+            AIO_COMMERCE_AUTH_IMS_CLIENT_SECRETS: $AIO_COMMERCE_AUTH_IMS_CLIENT_SECRETS
+            AIO_COMMERCE_AUTH_IMS_TECHNICAL_ACCOUNT_ID: $AIO_COMMERCE_AUTH_IMS_TECHNICAL_ACCOUNT_ID
+            AIO_COMMERCE_AUTH_IMS_TECHNICAL_ACCOUNT_EMAIL: $AIO_COMMERCE_AUTH_IMS_TECHNICAL_ACCOUNT_EMAIL
+            AIO_COMMERCE_AUTH_IMS_ORG_ID: $AIO_COMMERCE_AUTH_IMS_ORG_ID
+            AIO_COMMERCE_AUTH_IMS_SCOPES: $AIO_COMMERCE_AUTH_IMS_SCOPES
+          annotations:
+            final: true
+            require-adobe-auth: true
+          limits:
+            timeout: 600000
+    extra-fees:
+      license: Apache-2.0
+      actions:
+        calculate-fees:
+          function: actions/calculate-fees/index.js
+          web: "yes"
+          runtime: nodejs:24
+          inputs:
+            LOG_LEVEL: $LOG_LEVEL
+            ENABLE_TELEMETRY: true
+            FEE_RULES: $FEE_RULES
+            AIO_COMMERCE_AUTH_IMS_CLIENT_ID: $AIO_COMMERCE_AUTH_IMS_CLIENT_ID
+            AIO_COMMERCE_AUTH_IMS_CLIENT_SECRETS: $AIO_COMMERCE_AUTH_IMS_CLIENT_SECRETS
+            AIO_COMMERCE_AUTH_IMS_TECHNICAL_ACCOUNT_ID: $AIO_COMMERCE_AUTH_IMS_TECHNICAL_ACCOUNT_ID
+            AIO_COMMERCE_AUTH_IMS_TECHNICAL_ACCOUNT_EMAIL: $AIO_COMMERCE_AUTH_IMS_TECHNICAL_ACCOUNT_EMAIL
+            AIO_COMMERCE_AUTH_IMS_ORG_ID: $AIO_COMMERCE_AUTH_IMS_ORG_ID
+            AIO_COMMERCE_AUTH_IMS_SCOPES: $AIO_COMMERCE_AUTH_IMS_SCOPES
+          annotations:
+            require-adobe-auth: true
+            include-ims-credentials: true
+            final: true
+        # Storefront API for optional fees. Public: buyers have no Adobe IMS login, so the
+        # masked cart ID is the credential (see actions/fee-options/index.js).
+        fee-options:
+          function: actions/fee-options/index.js
+          web: "yes"
+          runtime: nodejs:24
+          inputs:
+            LOG_LEVEL: $LOG_LEVEL
+            FEE_RULES: $FEE_RULES
+            AIO_COMMERCE_AUTH_IMS_CLIENT_ID: $AIO_COMMERCE_AUTH_IMS_CLIENT_ID
+            AIO_COMMERCE_AUTH_IMS_CLIENT_SECRETS: $AIO_COMMERCE_AUTH_IMS_CLIENT_SECRETS
+            AIO_COMMERCE_AUTH_IMS_TECHNICAL_ACCOUNT_ID: $AIO_COMMERCE_AUTH_IMS_TECHNICAL_ACCOUNT_ID
+            AIO_COMMERCE_AUTH_IMS_TECHNICAL_ACCOUNT_EMAIL: $AIO_COMMERCE_AUTH_IMS_TECHNICAL_ACCOUNT_EMAIL
+            AIO_COMMERCE_AUTH_IMS_ORG_ID: $AIO_COMMERCE_AUTH_IMS_ORG_ID
+            AIO_COMMERCE_AUTH_IMS_SCOPES: $AIO_COMMERCE_AUTH_IMS_SCOPES
+          annotations:
+            require-adobe-auth: false
+            include-ims-credentials: true
+            final: true
+        # Order-placed Commerce event (eventing in app.commerce.config.ts): records fees for reports.
+        record-order-fees:
+          function: actions/record-order-fees/index.js
+          web: "no"
+          runtime: nodejs:24
+          inputs:
+            LOG_LEVEL: $LOG_LEVEL
+            FEE_RULES: $FEE_RULES
+            AIO_COMMERCE_AUTH_IMS_CLIENT_ID: $AIO_COMMERCE_AUTH_IMS_CLIENT_ID
+            AIO_COMMERCE_AUTH_IMS_CLIENT_SECRETS: $AIO_COMMERCE_AUTH_IMS_CLIENT_SECRETS
+            AIO_COMMERCE_AUTH_IMS_TECHNICAL_ACCOUNT_ID: $AIO_COMMERCE_AUTH_IMS_TECHNICAL_ACCOUNT_ID
+            AIO_COMMERCE_AUTH_IMS_TECHNICAL_ACCOUNT_EMAIL: $AIO_COMMERCE_AUTH_IMS_TECHNICAL_ACCOUNT_EMAIL
+            AIO_COMMERCE_AUTH_IMS_ORG_ID: $AIO_COMMERCE_AUTH_IMS_ORG_ID
+            AIO_COMMERCE_AUTH_IMS_SCOPES: $AIO_COMMERCE_AUTH_IMS_SCOPES
+          annotations:
+            include-ims-credentials: true
+            final: true
+        # Daily housekeeping (see the extra-fees-daily trigger below).
+        cleanup:
+          function: actions/cleanup/index.js
+          web: "no"
+          runtime: nodejs:24
+          inputs:
+            LOG_LEVEL: $LOG_LEVEL
+            AIO_COMMERCE_AUTH_IMS_CLIENT_ID: $AIO_COMMERCE_AUTH_IMS_CLIENT_ID
+            AIO_COMMERCE_AUTH_IMS_CLIENT_SECRETS: $AIO_COMMERCE_AUTH_IMS_CLIENT_SECRETS
+            AIO_COMMERCE_AUTH_IMS_TECHNICAL_ACCOUNT_ID: $AIO_COMMERCE_AUTH_IMS_TECHNICAL_ACCOUNT_ID
+            AIO_COMMERCE_AUTH_IMS_TECHNICAL_ACCOUNT_EMAIL: $AIO_COMMERCE_AUTH_IMS_TECHNICAL_ACCOUNT_EMAIL
+            AIO_COMMERCE_AUTH_IMS_ORG_ID: $AIO_COMMERCE_AUTH_IMS_ORG_ID
+            AIO_COMMERCE_AUTH_IMS_SCOPES: $AIO_COMMERCE_AUTH_IMS_SCOPES
+          annotations:
+            include-ims-credentials: true
+            final: true
+      triggers:
+        extra-fees-daily:
+          feed: /whisk.system/alarms/alarm
+          inputs:
+            cron: "17 3 * * *"
+      rules:
+        extra-fees-daily-cleanup:
+          trigger: extra-fees-daily
+          action: cleanup

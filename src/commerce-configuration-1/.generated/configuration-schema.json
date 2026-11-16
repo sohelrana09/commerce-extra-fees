@@ -1,0 +1,14 @@
+[
+  {
+    "default": true,
+    "label": "Charge extra fees",
+    "name": "feesEnabled",
+    "type": "boolean"
+  },
+  {
+    "default": "60",
+    "label": "Minutes to cache product categories and attributes used by fee conditions",
+    "name": "catalogCacheMinutes",
+    "type": "text"
+  }
+]
